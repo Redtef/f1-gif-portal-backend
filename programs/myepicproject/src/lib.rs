@@ -25,11 +25,28 @@ pub mod myepicproject {
       let item = ItemStruct{
           gif_link:gif_link.to_string(),
           user_address: *user.to_account_info().key,
+          up_votes: 0,
+        down_votes: 0,
       };
       base_account.gif_list.push(item);
       base_account.total_gifs += 1;
 
       Ok(())
+  }
+
+  pub fn up_vote(ctx:Context<UpVote>,index:u64)->ProgramResult{
+    let i = index as usize;
+    let base_account = &mut ctx.accounts.base_account;
+    let mut item = &mut base_account.gif_list[i];
+    item.up_votes += 1;
+    Ok(())
+  }
+  pub fn down_vote(ctx:Context<DownVote>,index:u64)->ProgramResult{
+    let i = index as usize;
+    let base_account = &mut ctx.accounts.base_account;
+    let mut item = &mut base_account.gif_list[i];
+    item.down_votes += 1;
+    Ok(())
   }
 
 }
@@ -60,12 +77,30 @@ pub struct AddGif<'info>{
     pub user: Signer<'info>,
 }
 
+#[derive(Accounts)]
+pub struct UpVote<'info>{
+    #[account(mut)]
+    pub base_account: Account<'info,BaseAccount>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct DownVote<'info>{
+    #[account(mut)]
+    pub base_account: Account<'info,BaseAccount>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+}
+
 // custom struct to store data 
 // this struct is an account , whichc is basically a file 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct ItemStruct{
     pub gif_link: String,
     pub user_address: Pubkey,
+    pub up_votes: u64,
+    pub down_votes: u64,
 }
 // this is an account where we store data 
 #[account]
